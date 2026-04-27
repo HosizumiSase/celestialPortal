@@ -2,13 +2,36 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CELESTIAL NIGHT - ROSTER</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     /* =========================================
-       ベース設定
+       ★ 全体・ベース設定
     ========================================= */
     body { background-color: #050608; color: #c5c6c7; font-family: 'Noto Sans JP', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
+    
+    /* ★ ローディング＆ログイン用オーバーレイ（星澄さんのデザイン！） */
+    #loader-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: #0f172a; /* ポータルと同じ背景色 */
+      z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;
+      transition: opacity 0.8s ease;
+    }
+    #loader-text {
+      color: #d4af37; font-family: 'Cinzel', serif; letter-spacing: 0.2em;
+      margin-bottom: 20px; font-size: 1.2rem;
+    }
+    .discord-login-btn {
+      background-color: #5865F2; color: #fff; text-decoration: none; padding: 15px 40px; 
+      border-radius: 4px; font-weight: bold; font-family: sans-serif; font-size: 1.1rem;
+      box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4); transition: transform 0.2s, background-color 0.2s;
+    }
+    .discord-login-btn:hover { background-color: #4752C4; transform: scale(1.05); }
+
+    /* =========================================
+       UIデザイン（パーティクル、スクロールバーなど）
+    ========================================= */
     #particles { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
     .particle { position: absolute; bottom: -10px; width: 4px; height: 4px; background-color: #ffae00; box-shadow: 0 0 12px 2px #ff4500; border-radius: 50%; opacity: 0; animation: floatUp linear infinite; }
     @keyframes floatUp { 0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; } 10% { opacity: 0.6; } 80% { opacity: 0.3; } 100% { transform: translateY(-100vh) translateX(50px) scale(0.2); opacity: 0; } }
@@ -21,7 +44,7 @@
     .app-container { display: flex; width: 100vw; height: 100vh; position: relative; z-index: 5; }
     .right-main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0 15px 10px 15px; box-sizing: border-box; }
 
-    /* ヘッダー */
+    /* ヘッダー周り */
     .top-bar { display: flex; align-items: center; padding: 0 20px; height: 60px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 10; box-sizing: border-box; }
     .brand-logo { font-family: 'Cinzel', serif; font-size: clamp(1.2rem, 2vw, 1.5rem); color: rgba(212, 175, 55, 0.8); letter-spacing: 0.2em; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; text-shadow: 0 0 10px rgba(212,175,55,0.3); margin: 0; }
     .top-controls { display: flex; align-items: center; gap: 15px; margin-left: auto; }
@@ -41,16 +64,15 @@
     select.search-input { width: auto; max-width: none; cursor: pointer; }
     select.search-input option { background-color: #0b0c10; color: #fff; }
 
-    #status-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #d4af37; font-family: 'Cinzel', serif; font-size: 1.2em; letter-spacing: 0.1em; z-index: 20; pointer-events: none; }
+    #status-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #d4af37; font-family: 'Cinzel', serif; font-size: 1.2em; letter-spacing: 0.1em; z-index: 20; pointer-events: none; display: none; }
 
-    /* メインエリア */
+    /* メインエリア・プレビューカード・VSライン等は省略せず完備 */
     .view-wrapper { flex: 1; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; overflow: hidden; justify-content: space-evenly; min-height: 0; padding: 10px 0; box-sizing: border-box; position: relative; z-index: 5; }
     .roster-section { width: 100%; display: flex; justify-content: center; align-items: center; flex: 1; min-height: 0; }
     .section-layout { display: flex; align-items: center; justify-content: center; gap: 2vw; width: 100%; max-width: 1200px; height: 100%; min-height: 0; }
     .guest-layout { flex-direction: row-reverse; }
     .mobile-sub-section { display: none; }
 
-    /* プレビューカード */
     .preview-card { width: 25vh; max-width: 220px; min-width: 140px; flex-shrink: 0; aspect-ratio: 3 / 5; background-color: #11151a; border-radius: 8px; border: 2px solid rgba(212, 175, 55, 0.6); box-shadow: 0 10px 30px rgba(0,0,0,0.8); position: relative; overflow: hidden; transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease; cursor: pointer; }
     .preview-card.guest-mode { border-color: rgba(231, 76, 60, 0.6); }
     .preview-card.locked { transform: scale(1.02); }
@@ -72,7 +94,6 @@
     .fade-enter { animation: fadeInScale 0.3s ease forwards; }
     @keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
 
-    /* VSライン */
     .vs-arena-divider { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; flex-shrink: 0; height: 6vh; user-select: none; }
     .team-label { font-family: 'Cinzel', serif; font-size: clamp(0.8rem, 1.5vh, 1.1rem); font-weight: 700; letter-spacing: 0.4em; text-transform: uppercase; }
     @keyframes moveCastLeft { 0% { color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.8); transform: translateX(0); } 100% { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.8); transform: translateX(-30vw); } }
@@ -86,7 +107,6 @@
     .vs-mark { font-family: 'Cinzel', serif; font-size: clamp(1.2rem, 3vh, 2rem); font-weight: 900; color: #fff; margin: 0 15px; animation: fadeOutVs 2s forwards; animation-delay: 1.5s; line-height: 1; }
     @keyframes fadeOutVs { 0% { opacity: 1; transform: scale(1); text-shadow: 0 0 10px #ff4500, 0 0 20px #ffae00; } 100% { opacity: 0; transform: scale(0.9); } }
 
-    /* グリッド */
     .roster-grid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vh; flex: 1; min-width: 0; min-height: 0; }
     .roster-row { display: flex; justify-content: center; gap: 0.6vw; width: 100%; flex-wrap: nowrap; min-height: 0; }
     .cast-split-wrap { display: flex; justify-content: center; gap: 1vw; flex: 1; align-items: stretch; min-width: 0; min-height: 0; }
@@ -94,7 +114,6 @@
     .guest-subgrid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vh; flex: 1; min-width: 0; min-height: 0; }
     .guest-spacer { width: 1px; background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); margin: 0 0.5vw; flex-shrink: 0; align-self: stretch; }
 
-    /* リストレイアウト共通 */
     .list-view { justify-content: flex-start; padding-top: 20px; padding-bottom: 20px; overflow: hidden; width: 100%; height: 100%; box-sizing: border-box; display: none; }
     .list-view .section-layout { flex: 1; min-height: 0; display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-start !important; justify-content: center !important; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; gap: 40px !important; box-sizing: border-box; }
     .list-view .preview-card { flex: 0 0 280px !important; width: 280px !important; height: 466px !important; max-width: none !important; min-width: 0 !important; position: relative; margin: 0; }
@@ -104,7 +123,6 @@
     .wrap-container { flex: 1 1 auto; min-width: 0; height: 100%; display: flex !important; flex-wrap: wrap !important; gap: 15px; align-content: flex-start; justify-content: flex-start; overflow-y: auto; padding: 0 10px 60px 10px; box-sizing: border-box; width: 100%; }
     .wrap-container .card { width: clamp(90px, 12vw, 120px) !important; height: auto !important; aspect-ratio: 3 / 5; max-width: none !important; min-width: 0 !important; flex: 0 0 auto !important; margin: 0 !important; }
 
-    /* 顧客リスト専用 */
     .guest-list-container { flex: 1 1 auto; min-width: 0; height: 100%; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 0 10px 60px 10px; box-sizing: border-box; width: 100%; max-width: 800px; margin: 0 auto; }
     .guest-list-row { display: flex; align-items: center; justify-content: space-between; background: rgba(17, 21, 26, 0.8); border: 1px solid rgba(155, 89, 182, 0.3); padding: 12px 15px; border-radius: 6px; cursor: pointer; transition: all 0.2s; animation: slideUpFade 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
     .guest-list-row:hover, .guest-list-row.focus-active { border-color: rgba(155, 89, 182, 0.8); background: rgba(155, 89, 182, 0.15); transform: translateX(5px); z-index: 10; }
@@ -113,7 +131,6 @@
     .guest-list-meta { font-size: 0.8em; color: #aaa; }
     .guest-list-count { background: rgba(155, 89, 182, 0.8); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-    /* カードデザイン */
     @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
     .card { flex: 1 1 0; min-width: 0; max-width: clamp(70px, 13vh, 120px); aspect-ratio: 3 / 5; height: auto; position: relative; background-color: #11151a; border-radius: 4px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease; border: 1px solid rgba(212, 175, 55, 0.1); text-align: left; animation: slideUpFade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
     .card.guest-m { border-color: rgba(231, 76, 60, 0.3); }
@@ -199,6 +216,10 @@
 </head>
 <body>
 
+  <div id="loader-overlay">
+    <div id="loader-text">LOADING CELESTIAL NIGHT...</div>
+  </div>
+
   <div id="particles"></div>
 
   <div class="app-container">
@@ -213,7 +234,7 @@
             <button id="tab-guests" class="nav-btn" onclick="switchMode('guests')">CUSTOMERS</button>
           </div>
 
-          <div class="date-picker-wrap" id="date-picker-container">
+          <div class="date-picker-wrap" id="date-picker-container" style="visibility: hidden;">
             <select id="dateSelect" onchange="loadRoster()">
               <option value="">読込中...</option>
             </select>
@@ -221,7 +242,7 @@
         </div>
       </header>
 
-      <div id="status-overlay">CONNECTING...</div>
+      <div id="status-overlay" style="display:none;"></div>
 
       <div id="event-view" class="view-wrapper" style="display: none;">
         <div class="roster-section">
@@ -321,19 +342,12 @@
     // ★ 星澄さんのGASのURL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxOnnUkklIpNwaRDDKpE8JKm_RowDc36P0RpD-z_9ZAnHbukcoeQ2pnRp8u9D1sVa8F/exec";
     
-    // URLのパラメータを取得
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const isAdmin = urlParams.get('admin');
     const botKey = urlParams.get('bot_key');
 
-    // ★ 認証チケットがなければ、即座にGASのログイン画面へジャンプ！
-    if (!token && !botKey) {
-        document.getElementById('status-overlay').innerText = "REDIRECTING TO LOGIN...";
-        window.location.href = GAS_URL + (isAdmin ? "?admin=true" : "");
-    }
-
-    // ★ GASと通信する魔法の関数
+    // ★ GASと通信する関数
     async function fetchAPI(action, extraParams = "") {
         let url = `${GAS_URL}?action=${action}`;
         if (token) url += `&token=${token}`;
@@ -344,21 +358,68 @@
             let response = await fetch(url);
             let data = await response.json();
             
-            // セッション切れの場合はもう一度ログイン画面へ
+            // トークン無効時は画面をリロードして認証からやり直し
             if (data.status === "Error" && data.message === "Invalid Token") {
-                alert("ログインの有効期限が切れました。再度認証してください。");
-                window.location.href = GAS_URL + (isAdmin ? "?admin=true" : "");
+                alert("セッションの有効期限が切れました。再度ログインしてください。");
+                window.location.href = window.location.pathname + (isAdmin ? "?admin=true" : "");
                 return null;
             }
             return data;
         } catch (e) {
             console.error("通信エラー:", e);
-            document.getElementById('status-overlay').innerText = "CONNECTION ERROR...";
+            document.getElementById('loader-text').innerText = "CONNECTION ERROR...";
             return null;
         }
     }
 
-    let currentMode = 'event'; 
+    // 🌟 アプリ起動ロジック
+    document.addEventListener("DOMContentLoaded", async function() {
+      const loaderText = document.getElementById('loader-text');
+      const loaderOverlay = document.getElementById('loader-overlay');
+
+      // ① まだログインしていない（トークンがない）場合
+      if (!token && !botKey) {
+          loaderText.innerText = "AUTHORIZING...";
+          // GASに「DiscordログインのURL」を聞きにいく
+          let data = await fetchAPI("getAuthUrl", isAdmin ? "admin=true" : "");
+          if (data && data.authUrl) {
+              // 取得できたら、文字をボタンに書き換える！
+              loaderText.innerHTML = `<a href="${data.authUrl}" class="discord-login-btn">LOGIN WITH DISCORD</a>`;
+          } else {
+              loaderText.innerText = "API ERROR";
+          }
+          return; // ログイン前なので、ここで一旦待機
+      }
+
+      // ② ログイン済み（トークンがある）場合
+      loaderText.innerText = "LOADING DATA...";
+      createParticles();
+
+      // GASのAPIから、名簿と予定を一気に取ってくる！
+      const [dates, casts, rawHistory] = await Promise.all([
+          fetchAPI("getConfirmedDates"),
+          fetchAPI("getAllCasts"),
+          fetchAPI("getGuestHistoryData")
+      ]);
+
+      if (dates) populateDropdown(dates);
+      if (casts) {
+          cachedAllCasts = casts; 
+          document.getElementById('main-nav-tabs').style.display = 'flex'; 
+      }
+      if (rawHistory) processGuestHistory(rawHistory);
+
+      // ③ 全部のデータが揃ったら、オーバーレイをフワッと消す魔法！
+      loaderOverlay.style.opacity = '0';
+      setTimeout(() => {
+          loaderOverlay.style.display = 'none';
+          document.getElementById('date-picker-container').style.visibility = 'visible';
+          // もしURLで直接「/」指定ならEVENTモードを表示
+          if (!currentMode || currentMode === 'event') switchMode('event');
+      }, 800);
+    });
+
+    let currentMode = ''; 
     let cachedAllCasts = null; 
     let cachedAllGuests = null; 
     let guestViewMode = 'grid'; 
@@ -373,44 +434,20 @@
       }
     }
 
-    // 🌟 ページ読み込み時に、3つのデータを一気に取得する！
-    document.addEventListener("DOMContentLoaded", async function() {
-      if (!token && !botKey) return; 
-      createParticles();
-
-      // fetchを使ってGASからJSONをもらう
-      const [dates, casts, rawHistory] = await Promise.all([
-          fetchAPI("getConfirmedDates"),
-          fetchAPI("getAllCasts"),
-          fetchAPI("getGuestHistoryData")
-      ]);
-
-      if (dates) populateDropdown(dates);
-      if (casts) {
-          cachedAllCasts = casts; 
-          document.getElementById('main-nav-tabs').style.display = 'flex'; 
-      }
-      if (rawHistory) processGuestHistory(rawHistory);
-    });
-
     function processGuestHistory(rawData) {
       if (!rawData || rawData.length === 0) return;
       let guestMap = {};
       rawData.forEach(function(row) {
         let name = row.guestName;
         if (!name) return;
-
         let tsObj = new Date(row.date);
         let ts = isNaN(tsObj.getTime()) ? 0 : tsObj.getTime();
-
         if (!guestMap[name]) {
           guestMap[name] = { name: name, visitCount: 0, desc: row.desc || '', xLink: row.xLink || '', imageUrl: row.img || '', attribute: row.attribute || '', history: [], lastVisitTime: -1 };
         }
-
         guestMap[name].visitCount++;
         let dateStr = !isNaN(tsObj) ? tsObj.toLocaleDateString('ja-JP', {year:'numeric', month:'2-digit', day:'2-digit'}) : row.date;
         guestMap[name].history.push({ date: dateStr, cast: row.castName, ts: ts });
-
         if (ts >= guestMap[name].lastVisitTime) {
           guestMap[name].lastVisitTime = ts;
           if (row.img) guestMap[name].imageUrl = row.img;
@@ -419,16 +456,13 @@
           if (row.attribute) guestMap[name].attribute = row.attribute;
         }
       });
-
       Object.values(guestMap).forEach(g => { g.history.sort((a, b) => b.ts - a.ts); });
       cachedAllGuests = Object.values(guestMap);
-
       let mCount = 0; let cCount = 0;
       cachedAllGuests.forEach(g => {
         let attr = String(g.attribute).toUpperCase();
         if (attr.includes('M')) mCount++; else if (attr.includes('C')) cCount++;
       });
-      
       let statsEl = document.getElementById('customer-stats');
       if (statsEl) {
         statsEl.innerHTML = 'TOTAL: ' + cachedAllGuests.length + ' 名 <span style="margin: 0 10px; color: #555;">|</span> <span style="color: #e74c3c;">M: ' + mCount + '</span> <span style="margin: 0 10px; color: #555;">|</span> <span style="color: #3498db;">C: ' + cCount + '</span>';
@@ -438,28 +472,23 @@
     function populateDropdown(dates) {
       const select = document.getElementById('dateSelect'); select.innerHTML = ''; 
       if (!dates || dates.length === 0) { select.innerHTML = '<option value="">予定なし</option>'; return; }
-      
       dates.forEach(function(dateStr) { 
         const opt = document.createElement('option'); opt.value = dateStr; opt.textContent = dateStr; select.appendChild(opt); 
       });
-      
       const today = new Date(); today.setHours(0, 0, 0, 0); 
       let closestDate = dates[dates.length - 1]; 
       let minDiff = Infinity;
-
       dates.forEach(function(dateStr) {
         const datePart = dateStr.split('(')[0].trim(); 
         const parts = datePart.split('/');
         let d;
         if (parts.length === 3) d = new Date(parts[0], parts[1] - 1, parts[2]);
         else if (parts.length === 2) d = new Date(today.getFullYear(), parts[0] - 1, parts[1]);
-        
         if (d && !isNaN(d)) {
           const diff = d.getTime() - today.getTime();
           if (diff >= 0 && diff < minDiff) { minDiff = diff; closestDate = dateStr; }
         }
       });
-      
       select.value = closestDate;
       loadRoster();
     }
@@ -477,17 +506,13 @@
       if (currentMode === targetMode) return;
       currentMode = targetMode;
       resetLocks();
-
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById('tab-' + targetMode).classList.add('active');
-
       document.getElementById('event-view').style.display = 'none';
       document.getElementById('all-casts-view').style.display = 'none';
       document.getElementById('all-guests-view').style.display = 'none';
-      document.getElementById('date-picker-container').style.visibility = 'hidden';
       
       if (targetMode === 'event') {
-        document.getElementById('date-picker-container').style.visibility = 'visible';
         document.getElementById('event-view').style.display = 'flex';
         setTimeout(function() { document.getElementById('event-view').style.opacity = '1'; }, 10);
       } 
@@ -523,9 +548,7 @@
       if (!cachedAllGuests) return;
       const query = document.getElementById('guest-search').value.toLowerCase();
       const sortMode = document.getElementById('guest-sort').value;
-
       let filtered = cachedAllGuests.filter(function(g) { return g.name.toLowerCase().includes(query) || (g.desc && g.desc.toLowerCase().includes(query)); });
-
       filtered.sort(function(a, b) {
         if (sortMode === 'count-desc') {
           if (b.visitCount !== a.visitCount) return b.visitCount - a.visitCount;
@@ -537,15 +560,9 @@
         }
         return 0;
       });
-
       const container = document.getElementById('all-guests-container');
       container.innerHTML = '';
-      
-      if (filtered.length === 0) {
-        container.innerHTML = '<div style="color:#888; text-align:center; width:100%; margin-top:50px;">該当するデータがありません</div>';
-        return;
-      }
-
+      if (filtered.length === 0) { container.innerHTML = '<div style="color:#888; text-align:center; width:100%; margin-top:50px;">該当するデータがありません</div>'; return; }
       if (guestViewMode === 'list') {
         container.classList.remove('wrap-container'); container.classList.add('guest-list-container');
         filtered.forEach(function(guest, index) { container.appendChild(createGuestListRow(guest, index)); });
@@ -555,14 +572,11 @@
       }
     }
 
-    // 🌟 API経由で特定日のロスターを取得
     async function loadRoster() {
       const dateVal = document.getElementById('dateSelect').value; if (!dateVal) return;
       if (currentMode !== 'event') switchMode('event');
       resetLocks();
-      
-      document.getElementById('status-overlay').style.display = 'block'; document.getElementById('event-view').style.opacity = '0';
-      
+      document.getElementById('event-view').style.opacity = '0';
       const data = await fetchAPI("getEventRoster", "date=" + encodeURIComponent(dateVal));
       if (data) renderRoster(data);
     }
@@ -585,31 +599,23 @@
     }
 
     function renderRoster(data) {
-      document.getElementById('status-overlay').style.display = 'none';
       document.getElementById('event-view').style.display = 'flex';
       setTimeout(function() { document.getElementById('event-view').style.opacity = '1'; }, 50);
-
       data.casts.sort(function(a, b) { if (a.name.toLowerCase() === 'shiaru') return -1; if (b.name.toLowerCase() === 'shiaru') return 1; if (a.status === '⭕' && b.status === '🔺') return -1; if (a.status === '🔺' && b.status === '⭕') return 1; return a.name.localeCompare(b.name); });
-      
       let mainCasts = data.casts.filter(function(c) { return c.status !== '🔺'; });
       let subCasts = data.casts.filter(function(c) { return c.status === '🔺'; });
-
       renderTwoRows(document.getElementById('cast-main-container'), mainCasts, true, false, 'cast');
       renderTwoRows(document.getElementById('cast-sub-container'), subCasts, true, false, 'cast');
       document.getElementById('cast-spacer-line').style.display = (mainCasts.length > 0 && subCasts.length > 0) ? 'block' : 'none';
-
       const mobSubContainer = document.getElementById('mobile-sub-container');
       const mobSubSection = document.querySelector('.mobile-sub-section');
       mobSubContainer.innerHTML = '';
-      
       if (subCasts.length > 0) {
         subCasts.forEach(function(item, i) { mobSubContainer.appendChild(createCard(item, true, i, false, 'cast')); });
         mobSubSection.classList.add('is-active');
       } else { mobSubSection.classList.remove('is-active'); }
-
       let guestM = data.guests.filter(function(g) { return g.attribute === 'M'; }).sort(function(a, b) { return (parseInt(a.number.replace(/\D/g,''))||0) - (parseInt(b.number.replace(/\D/g,''))||0); });
       let guestC = data.guests.filter(function(g) { return g.attribute === 'C'; }).sort(function(a, b) { return (parseInt(a.number.replace(/\D/g,''))||0) - (parseInt(b.number.replace(/\D/g,''))||0); });
-      
       renderTwoRows(document.getElementById('guest-m-container'), guestM, false, false, 'guest');
       renderTwoRows(document.getElementById('guest-c-container'), guestC, false, false, 'guest');
       document.getElementById('guest-spacer-line').style.display = (guestM.length && guestC.length) ? 'block' : 'none';
@@ -640,10 +646,7 @@
           '<div class="preview-desc">' + descText + '</div>' +
         '</div>';
 
-      container.onclick = function(e) {
-        if (e.target.closest('a')) return; 
-        openLightbox(person, badgesHtml, rolesHtml, descText, historyHtml);
-      };
+      container.onclick = function(e) { if (e.target.closest('a')) return; openLightbox(person, badgesHtml, rolesHtml, descText, historyHtml); };
     }
 
     function openLightbox(person, badges, roles, desc, history = '') {
@@ -652,14 +655,11 @@
       document.getElementById('lb-badges').innerHTML = badges;
       document.getElementById('lb-roles').innerHTML = roles;
       document.getElementById('lb-desc').innerHTML = desc; 
-      
       const historyWrap = document.getElementById('lb-history');
       if (history) historyWrap.innerHTML = '<div style="font-weight:bold; color:#d4af37; margin-top:10px; font-size:0.9em;">📝 来店履歴</div><div class="history-list">' + history + '</div>';
       else historyWrap.innerHTML = '';
-      
       const xWrap = document.getElementById('lb-x-link-wrap');
       xWrap.innerHTML = person.xLink ? '<a href="' + person.xLink + '" target="_blank" class="x-link-btn" style="position:static; margin-top:10px;">X (Twitter)</a>' : '';
-
       const lb = document.getElementById('lightbox'); lb.classList.add('active'); setTimeout(function() { lb.classList.add('show'); }, 10);
     }
     function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); setTimeout(function() { document.getElementById('lightbox').classList.remove('active'); }, 300); }
@@ -680,28 +680,21 @@
       }
       let nCls = 'name'; if (person.name.length >= 15) nCls += ' name-xlong'; else if (person.name.length >= 9) nCls += ' name-long';
       card.innerHTML = tl + tr + '<img src="' + (person.imageUrl||'') + '" class="card-img"><div class="card-info"><h3 class="' + nCls + '">' + person.name + '</h3></div>';
-      
-      let rH = isCast ? person.roles.join(' / ') : '';
-      let sT = isCast ? person.description : 'From: ' + person.castName + '<br>[' + person.number + ']<br>' + person.description;
-      
+      let rH = isCast ? person.roles.join(' / ') : ''; let sT = isCast ? person.description : 'From: ' + person.castName + '<br>[' + person.number + ']<br>' + person.description;
       card.onmouseenter = function() { 
         if (window.innerWidth > 768) { 
-          let previewId = targetGroup + '-preview';
-          if (previewLocks[previewId]) return;
-          updatePreview(person, tl + tr, rH, sT, previewId); 
+          let previewId = targetGroup + '-preview'; if (previewLocks[previewId]) return; updatePreview(person, tl + tr, rH, sT, previewId); 
           let section = document.getElementById(previewId).closest('.section-layout');
           if(section) { section.querySelectorAll('.card, .guest-list-row').forEach(function(c) { c.classList.remove('focus-active'); }); card.classList.add('focus-active'); }
         } 
       };
-      
       card.onclick = function() { 
         if (window.innerWidth <= 768) { openLightbox(person, tl+tr, rH, sT); } 
         else { 
           let previewId = targetGroup + '-preview';
           if (previewLocks[previewId] === person.name) { unlockPreview(previewId); } 
           else {
-            previewLocks[previewId] = person.name;
-            updatePreview(person, tl + tr, rH, sT, previewId);
+            previewLocks[previewId] = person.name; updatePreview(person, tl + tr, rH, sT, previewId);
             let el = document.getElementById(previewId); el.classList.add('locked');
             let section = el.closest('.section-layout');
             if(section) { section.querySelectorAll('.card, .guest-list-row').forEach(function(c) { c.classList.remove('focus-active'); }); card.classList.add('focus-active'); }
@@ -717,12 +710,9 @@
       let nCls = 'name'; if (guest.name.length >= 15) nCls += ' name-xlong'; else if (guest.name.length >= 9) nCls += ' name-long';
       card.innerHTML = badgeHtml + '<img src="' + (guest.imageUrl||'') + '" class="card-img"><div class="card-info"><h3 class="' + nCls + '">' + guest.name + '</h3></div>';
       let historyHtml = guest.history.map(h => '<div class="history-item"><span>[' + h.date + ']</span><span>担当: ' + h.cast + '</span></div>').join('');
-      
       card.onmouseenter = function() { 
         if (window.innerWidth > 768) { 
-          let previewId = 'all-guest-preview';
-          if (previewLocks[previewId]) return;
-          updatePreview(guest, badgeHtml, '', guest.desc, previewId, historyHtml); 
+          let previewId = 'all-guest-preview'; if (previewLocks[previewId]) return; updatePreview(guest, badgeHtml, '', guest.desc, previewId, historyHtml); 
           let section = document.getElementById(previewId).closest('.section-layout');
           if(section) { section.querySelectorAll('.card, .guest-list-row').forEach(function(c) { c.classList.remove('focus-active'); }); card.classList.add('focus-active'); }
         } 
@@ -748,21 +738,11 @@
       let lastDate = guest.history.length > 0 ? guest.history[0].date : "不明";
       let lastCast = guest.history.length > 0 ? guest.history[0].cast : "-";
       let badgeHtml = '<div class="visit-badge">来店 ' + guest.visitCount + '回</div>';
-
-      row.innerHTML = `
-        <div class="guest-list-info">
-          <div class="guest-list-name">${guest.name}</div>
-          <div class="guest-list-meta">最終来店: ${lastDate} | 最新担当: ${lastCast}</div>
-        </div>
-        <div class="guest-list-stats"><div class="guest-list-count">来店 ${guest.visitCount}回</div></div>
-      `;
+      row.innerHTML = `<div class="guest-list-info"><div class="guest-list-name">${guest.name}</div><div class="guest-list-meta">最終来店: ${lastDate} | 最新担当: ${lastCast}</div></div><div class="guest-list-stats"><div class="guest-list-count">来店 ${guest.visitCount}回</div></div>`;
       let historyHtml = guest.history.map(h => '<div class="history-item"><span>[' + h.date + ']</span><span>担当: ' + h.cast + '</span></div>').join('');
-
       row.onmouseenter = function() { 
         if (window.innerWidth > 768) { 
-          let previewId = 'all-guest-preview';
-          if (previewLocks[previewId]) return;
-          updatePreview(guest, badgeHtml, '', guest.desc, previewId, historyHtml); 
+          let previewId = 'all-guest-preview'; if (previewLocks[previewId]) return; updatePreview(guest, badgeHtml, '', guest.desc, previewId, historyHtml); 
           let section = document.getElementById(previewId).closest('.section-layout');
           if(section) { section.querySelectorAll('.card, .guest-list-row').forEach(function(c) { c.classList.remove('focus-active'); }); row.classList.add('focus-active'); }
         } 
