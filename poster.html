@@ -6,11 +6,6 @@
   <title>CELESTIAL NIGHT - POSTER</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   <style>
-    /* カードの基本サイズ（JSで人数に応じて自動で小さくなります） */
-    :root {
-      --card-width: 220px; 
-    }
-
     body, html { margin: 0; padding: 0; width: 1080px; height: 1920px; background-color: #050608; overflow: hidden; font-family: 'Noto Sans JP', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     
     /* 背景の装飾 */
@@ -20,32 +15,42 @@
     /* コンテンツエリア */
     .content { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 60px 0; box-sizing: border-box; justify-content: flex-start; }
     
-    .header-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+    .header-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
     .brand-logo { font-family: 'Cinzel', serif; font-size: 65px; color: #d4af37; letter-spacing: 0.25em; text-shadow: 0 0 30px rgba(212, 175, 55, 0.6); margin-bottom: 10px; text-align: center; line-height: 1; }
     .date-display { font-size: 40px; color: #fff; font-weight: bold; background: rgba(212, 175, 55, 0.15); padding: 10px 50px; border-radius: 50px; border: 1px solid rgba(212, 175, 55, 0.5); text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); font-family: 'Cinzel', serif; }
 
     /* セクションタイトル（CAST / GUEST） */
-    .section-title { font-family: 'Cinzel', serif; font-size: 35px; color: #fff; letter-spacing: 0.3em; margin: 20px 0 15px 0; text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); border-bottom: 2px solid rgba(212, 175, 55, 0.5); padding-bottom: 5px; width: 800px; text-align: center; }
-    #guest-title { border-bottom-color: rgba(155, 89, 182, 0.5); color: #e0b0ff; text-shadow: 0 0 15px rgba(155, 89, 182, 0.5); }
+    .section-title { font-family: 'Cinzel', serif; font-size: 35px; color: #fff; letter-spacing: 0.3em; margin: 15px 0 15px 0; text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); border-bottom: 2px solid rgba(212, 175, 55, 0.5); padding-bottom: 5px; width: 920px; text-align: center; }
+    #guest-title { border-bottom-color: rgba(155, 89, 182, 0.5); color: #e0b0ff; text-shadow: 0 0 15px rgba(155, 89, 182, 0.5); margin-top: 25px; }
 
-    .cast-grid { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 15px; width: 960px; }
+    /* ★ レイアウト：CASTは6列グリッド */
+    .cast-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 920px; }
     
-    /* カードのデザイン（CSS変数でサイズが連動します） */
-    .card { width: var(--card-width); aspect-ratio: 3 / 5; background-color: #11151a; border-radius: 8px; border: 2px solid rgba(212, 175, 55, 0.8); overflow: hidden; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+    /* ★ レイアウト：GUESTは左右に分けるコンテナ */
+    .guest-split-container { display: flex; justify-content: space-between; width: 920px; gap: 30px; }
+    .guest-side { flex: 1; display: flex; flex-direction: column; align-items: center; }
+    .side-title { font-family: 'Cinzel', serif; font-size: 20px; letter-spacing: 0.2em; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid currentColor; padding-bottom: 5px; width: 100%; text-align: center; }
+    /* ★ レイアウト：左右それぞれ3列グリッド */
+    .guest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
+
+    /* カードのデザイン（グリッドに合わせて自動伸縮します） */
+    .card { width: 100%; aspect-ratio: 3 / 5; background-color: #11151a; border-radius: 8px; border: 2px solid rgba(212, 175, 55, 0.8); overflow: hidden; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
     .card-img { width: 100%; height: 100%; object-fit: cover; }
     .card-info { position: absolute; bottom: 0; width: 100%; padding: 50% 10px 10px 10px; box-sizing: border-box; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; }
     
-    /* 文字サイズもカードの大きさに合わせて自動で伸縮 */
-    .name { font-size: calc(var(--card-width) * 0.14); font-weight: bold; color: #fff; margin: 0 0 3px 0; text-shadow: 0 3px 6px #000; line-height: 1.1; }
-    .roles { font-family: 'Cinzel', serif; font-size: calc(var(--card-width) * 0.075); color: #d4af37; margin: 0; }
+    /* 文字サイズ */
+    .name { font-size: 19px; font-weight: bold; color: #fff; margin: 0 0 3px 0; text-shadow: 0 3px 6px #000; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .roles { font-family: 'Cinzel', serif; font-size: 11px; color: #d4af37; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    .sub-badge { position: absolute; top: 8px; right: 8px; background: rgba(0, 0, 0, 0.8); border: 2px solid #f39c12; color: #f39c12; padding: 3px 6px; border-radius: 6px; font-weight: bold; font-size: calc(var(--card-width) * 0.06); }
-    
-    /* ゲスト用の装飾 */
-    .guest-card { border-color: rgba(155, 89, 182, 0.6); }
-    .guest-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.8); border: 2px solid; padding: 3px 6px; border-radius: 6px; font-weight: bold; font-size: calc(var(--card-width) * 0.06); }
-    .badge-m { border-color: #e74c3c; color: #e74c3c; }
-    .badge-c { border-color: #3498db; color: #3498db; }
+    /* バッジ類 */
+    .badge { position: absolute; background: rgba(0, 0, 0, 0.8); border: 2px solid; padding: 2px 5px; border-radius: 6px; font-weight: bold; font-size: 10px; }
+    .sub-badge { top: 6px; right: 6px; border-color: #f39c12; color: #f39c12; }
+    .badge-m { top: 6px; left: 6px; border-color: #e74c3c; color: #e74c3c; }
+    .badge-c { top: 6px; left: 6px; border-color: #3498db; color: #3498db; }
+
+    /* ゲスト枠の色分け */
+    .border-m { border-color: rgba(231, 76, 60, 0.6); }
+    .border-c { border-color: rgba(52, 152, 219, 0.6); }
 
     #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #d4af37; font-size: 40px; font-family: 'Cinzel', serif; z-index: 100; text-shadow: 0 0 20px rgba(212,175,55,0.8); }
   </style>
@@ -66,7 +71,19 @@
     <div class="cast-grid" id="cast-container"></div>
     
     <div class="section-title" id="guest-title" style="display: none;">GUEST</div>
-    <div class="cast-grid" id="guest-container"></div>
+    <div class="guest-split-container" id="guest-split" style="display: none;">
+      
+      <div class="guest-side">
+        <div class="side-title" style="color: #3498db; text-shadow: 0 0 10px #3498db;">C - SIDE</div>
+        <div class="guest-grid" id="guest-c-container"></div>
+      </div>
+
+      <div class="guest-side">
+        <div class="side-title" style="color: #e74c3c; text-shadow: 0 0 10px #e74c3c;">M - SIDE</div>
+        <div class="guest-grid" id="guest-m-container"></div>
+      </div>
+
+    </div>
   </div>
 
   <script>
@@ -74,6 +91,31 @@
     const urlParams = new URLSearchParams(window.location.search);
     const targetDate = urlParams.get('date');
     const botKey = urlParams.get('bot_key');
+
+    // カードを生成する共通関数
+    function createCardHtml(data, type) {
+      let isSub = data.status === '🔺';
+      let imgUrl = data.imageUrl || 'https://via.placeholder.com/240x400/11151a/d4af37?text=No+Image';
+      
+      let badgeHtml = '';
+      if (type === 'cast' && isSub) badgeHtml = '<div class="badge sub-badge">SUB</div>';
+      else if (type === 'guest-m') badgeHtml = '<div class="badge badge-m">M側</div>';
+      else if (type === 'guest-c') badgeHtml = '<div class="badge badge-c">C側</div>';
+
+      let topText = type === 'cast' ? (data.roles && data.roles.length > 0 ? data.roles.join(' / ') : '') : `[${data.number}]`;
+      let borderColorClass = type === 'guest-m' ? 'border-m' : (type === 'guest-c' ? 'border-c' : '');
+
+      return `
+        <div class="card ${borderColorClass}">
+          ${badgeHtml}
+          <img src="${imgUrl}" class="card-img" crossorigin="anonymous">
+          <div class="card-info">
+            <div class="roles">${topText}</div>
+            <h3 class="name" title="${data.name}">${data.name}</h3>
+          </div>
+        </div>
+      `;
+    }
 
     async function generatePoster() {
       if (!targetDate || !botKey) {
@@ -87,83 +129,44 @@
         let data = await response.json();
         if (data.status === "Error") throw new Error(data.message);
 
-        // ❌(欠席)以外のキャスト、およびSOS以外のゲストを抽出
+        // ==== CASTの処理 ====
         let casts = data.casts.filter(c => c.status !== "❌" && c.status !== "×" && c.status !== "-");
-        let guests = data.guests.filter(g => !g.name.includes('SOS') && !g.number.includes('SOS'));
-        
-        const castContainer = document.getElementById('cast-container');
-        const guestContainer = document.getElementById('guest-container');
-
-        // ★ 人数に合わせてカードのサイズを自動計算！（これで絶対にはみ出しません）
-        let totalCards = casts.length + guests.length;
-        let cardW = 210; // 基本サイズ
-        if (totalCards > 12) cardW = 180; // 1列5枚
-        if (totalCards > 18) cardW = 150; // 1列6枚
-        if (totalCards > 24) cardW = 130; // 1列7枚
-        if (totalCards > 32) cardW = 110; // 1列8枚
-        document.documentElement.style.setProperty('--card-width', cardW + 'px');
-
-        // ==== CASTの描画 ====
         casts.sort((a, b) => {
             if (a.status === '⭕' && b.status === '🔺') return -1;
             if (a.status === '🔺' && b.status === '⭕') return 1;
             return 0;
         });
-
+        const castContainer = document.getElementById('cast-container');
         casts.forEach(cast => {
-          let rolesHtml = cast.roles && cast.roles.length > 0 ? cast.roles.join(' / ') : '';
-          let subBadge = cast.status === '🔺' ? '<div class="sub-badge">SUB</div>' : '';
-          let imgUrl = cast.imageUrl || 'https://via.placeholder.com/240x400/11151a/d4af37?text=No+Image';
-
-          let card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            ${subBadge}
-            <img src="${imgUrl}" class="card-img" crossorigin="anonymous">
-            <div class="card-info">
-              <div class="roles">${rolesHtml}</div>
-              <h3 class="name">${cast.name}</h3>
-            </div>
-          `;
-          castContainer.appendChild(card);
+          castContainer.innerHTML += createCardHtml(cast, 'cast');
         });
 
-        // ==== GUESTの描画 ====
+        // ==== GUESTの処理 ====
+        let guests = data.guests.filter(g => !g.name.includes('SOS') && !g.number.includes('SOS'));
         if (guests.length > 0) {
             document.getElementById('guest-title').style.display = 'block';
+            document.getElementById('guest-split').style.display = 'flex';
             
-            // M側 → C側の順に、さらに番号順で並び替え
+            const mContainer = document.getElementById('guest-m-container');
+            const cContainer = document.getElementById('guest-c-container');
+
+            // 番号順にソートして、それぞれのコンテナに振り分ける
             guests.sort((a, b) => {
-                let isA_M = a.attribute.includes('M') ? 0 : 1;
-                let isB_M = b.attribute.includes('M') ? 0 : 1;
-                if(isA_M !== isB_M) return isA_M - isB_M;
                 let numA = parseInt(a.number.replace(/[^0-9]/g, '')) || 999;
                 let numB = parseInt(b.number.replace(/[^0-9]/g, '')) || 999;
                 return numA - numB;
             });
 
             guests.forEach(guest => {
-                let isM = guest.attribute.includes('M');
-                let badgeClass = isM ? 'badge-m' : 'badge-c';
-                let badgeText = isM ? 'M側' : 'C側';
-                let guestBadge = `<div class="guest-badge ${badgeClass}">${badgeText}</div>`;
-                let imgUrl = guest.imageUrl || 'https://via.placeholder.com/240x400/11151a/d4af37?text=No+Image';
-
-                let card = document.createElement('div');
-                card.className = 'card guest-card';
-                card.innerHTML = `
-                  ${guestBadge}
-                  <img src="${imgUrl}" class="card-img" crossorigin="anonymous">
-                  <div class="card-info">
-                    <div class="roles">[${guest.number}]</div>
-                    <h3 class="name">${guest.name}</h3>
-                  </div>
-                `;
-                guestContainer.appendChild(card);
+                if (guest.attribute.includes('M')) {
+                    mContainer.innerHTML += createCardHtml(guest, 'guest-m');
+                } else {
+                    cContainer.innerHTML += createCardHtml(guest, 'guest-c');
+                }
             });
         }
 
-        // 描画完了！アニメーションを使わず即座に表示（Botが撮影しやすくするため）
+        // 描画完了！
         document.getElementById('loading').style.display = 'none';
         document.getElementById('main-content').style.opacity = '1';
 
