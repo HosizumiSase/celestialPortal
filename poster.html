@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, initial-scale=1.0">
+  <title>CELESTIAL NIGHT - POSTER</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+  <style>
+    /* ポスター専用の固定サイズ設定（1080x1920 フルHD縦長） */
+    body, html { margin: 0; padding: 0; width: 1080px; height: 1920px; background-color: #050608; overflow: hidden; font-family: 'Noto Sans JP', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+    
+    /* 背景の装飾 */
+    .bg-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #11151a 0%, #050608 100%); z-index: 0; }
+    .gold-border { position: absolute; top: 40px; left: 40px; width: calc(100% - 80px); height: calc(100% - 80px); border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 20px; box-shadow: inset 0 0 50px rgba(212, 175, 55, 0.05); z-index: 1; pointer-events: none; }
+
+    /* コンテンツエリア */
+    .content { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 120px; }
+    
+    .brand-logo { font-family: 'Cinzel', serif; font-size: 75px; color: #d4af37; letter-spacing: 0.25em; text-shadow: 0 0 30px rgba(212, 175, 55, 0.6); margin-bottom: 20px; text-align: center; }
+    .sub-title { font-family: 'Cinzel', serif; font-size: 30px; color: #fff; letter-spacing: 0.5em; margin-bottom: 60px; opacity: 0.8; }
+    
+    .date-display { font-size: 50px; color: #fff; font-weight: bold; margin-bottom: 80px; background: rgba(212, 175, 55, 0.15); padding: 15px 60px; border-radius: 50px; border: 1px solid rgba(212, 175, 55, 0.5); text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+
+    .cast-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; width: 900px; }
+    
+    /* キャストカードのデザイン */
+    .card { width: 240px; aspect-ratio: 3 / 5; background-color: #11151a; border-radius: 12px; border: 3px solid rgba(212, 175, 55, 0.8); overflow: hidden; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+    .card-img { width: 100%; height: 100%; object-fit: cover; }
+    .card-info { position: absolute; bottom: 0; width: 100%; padding: 50% 20px 20px 20px; box-sizing: border-box; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; }
+    .name { font-size: 32px; font-weight: bold; color: #fff; margin: 0 0 5px 0; text-shadow: 0 3px 6px #000; line-height: 1.1; }
+    .roles { font-family: 'Cinzel', serif; font-size: 16px; color: #d4af37; margin: 0; }
+    .sub-badge { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.8); border: 2px solid #f39c12; color: #f39c12; padding: 5px 10px; border-radius: 8px; font-weight: bold; font-size: 14px; }
+
+    #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #d4af37; font-size: 40px; font-family: 'Cinzel', serif; z-index: 100; }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <div class="gold-border"></div>
+
+  <div id="loading">GENERATING POSTER...</div>
+
+  <div class="content" id="main-content" style="opacity: 0;">
+    <div class="brand-logo">CELESTIAL NIGHT</div>
+    <div class="sub-title">CAST ROSTER</div>
+    <div class="date-display" id="date-text">XXXX/XX/XX</div>
+    <div class="cast-grid" id="cast-container"></div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxOnnUkklIpNwaRDDKpE8JKm_RowDc36P0RpD-z_9ZAnHbukcoeQ2pnRp8u9D1sVa8F/exec";
+    
+    // Botから渡された日付と秘密の鍵を取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetDate = urlParams.get('date');
+    const botKey = urlParams.get('bot_key');
+
+    async function generatePoster() {
+      if (!targetDate || !botKey) {
+        document.getElementById('loading').innerText = "INVALID PARAMETERS";
+        return;
+      }
+      
+      document.getElementById('date-text').innerText = targetDate;
+
+      try {
+        // 秘密の鍵を使って認証をスルーし、名簿を取得
+        let response = await fetch(`${GAS_URL}?action=getEventRoster&date=${encodeURIComponent(targetDate)}&bot_key=${botKey}`);
+        let data = await response.json();
+
+        if (data.status === "Error") throw new Error(data.message);
+
+        const container = document.getElementById('cast-container');
+        
+        // 欠席（❌）以外のキャストを並べる
+        let casts = data.casts.filter(c => c.status !== "❌" && c.status !== "×" && c.status !== "-");
+        
+        // メインキャスト→サブキャストの順に並び替え
+        casts.sort((a, b) => {
+            if (a.status === '⭕' && b.status === '🔺') return -1;
+            if (a.status === '🔺' && b.status === '⭕') return 1;
+            return 0;
+        });
+
+        casts.forEach(cast => {
+          let rolesHtml = cast.roles && cast.roles.length > 0 ? cast.roles.join(' / ') : '';
+          let subBadge = cast.status === '🔺' ? '<div class="sub-badge">SUB</div>' : '';
+          let imgUrl = cast.imageUrl || 'https://via.placeholder.com/240x400/11151a/d4af37?text=No+Image';
+
+          let card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            ${subBadge}
+            <img src="${imgUrl}" class="card-img" crossorigin="anonymous">
+            <div class="card-info">
+              <div class="roles">${rolesHtml}</div>
+              <h3 class="name">${cast.name}</h3>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        // 画像の読み込みが完了するまで少し待ってから表示する
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('main-content').style.opacity = '1';
+        }, 1500);
+
+      } catch (e) {
+        document.getElementById('loading').innerText = "ERROR: " + e.message;
+      }
+    }
+
+    generatePoster();
+  </script>
+</body>
+</html>
