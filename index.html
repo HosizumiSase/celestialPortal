@@ -447,7 +447,8 @@
         }
         guestMap[name].visitCount++;
         let dateStr = !isNaN(tsObj) ? tsObj.toLocaleDateString('ja-JP', {year:'numeric', month:'2-digit', day:'2-digit'}) : row.date;
-        guestMap[name].history.push({ date: dateStr, cast: row.castName, ts: ts });
+        let eventLabel = row.event ? row.event : "Celestial";
+        guestMap[name].history.push({ date: dateStr, cast: row.castName, event: eventLabel, ts: ts });
         if (ts >= guestMap[name].lastVisitTime) {
           guestMap[name].lastVisitTime = ts;
           if (row.img) guestMap[name].imageUrl = row.img;
@@ -709,7 +710,7 @@
       let badgeHtml = '<div class="visit-badge">来店 ' + guest.visitCount + '回</div>';
       let nCls = 'name'; if (guest.name.length >= 15) nCls += ' name-xlong'; else if (guest.name.length >= 9) nCls += ' name-long';
       card.innerHTML = badgeHtml + '<img src="' + (guest.imageUrl||'') + '" class="card-img"><div class="card-info"><h3 class="' + nCls + '">' + guest.name + '</h3></div>';
-      let historyHtml = guest.history.map(h => '<div class="history-item"><span>[' + h.date + ']</span><span>担当: ' + h.cast + '</span></div>').join('');
+      let historyHtml = guest.history.map(h => '<div class="history-item"><span>[' + h.date + '] ' + (h.event === 'AHE' ? '<span style="color:#e67e22; font-size:0.8em; border:1px solid #e67e22; padding:1px 4px; border-radius:4px; margin-left:4px;">AHE</span>' : '') + '</span><span>担当: ' + h.cast + '</span></div>').join('');
       card.onmouseenter = function() { 
         if (window.innerWidth > 768) { 
           let previewId = 'all-guest-preview'; if (previewLocks[previewId]) return; updatePreview(guest, badgeHtml, '', guest.desc, previewId, historyHtml); 
@@ -739,7 +740,7 @@
       let lastCast = guest.history.length > 0 ? guest.history[0].cast : "-";
       let badgeHtml = '<div class="visit-badge">来店 ' + guest.visitCount + '回</div>';
       row.innerHTML = `<div class="guest-list-info"><div class="guest-list-name">${guest.name}</div><div class="guest-list-meta">最終来店: ${lastDate} | 最新担当: ${lastCast}</div></div><div class="guest-list-stats"><div class="guest-list-count">来店 ${guest.visitCount}回</div></div>`;
-      let historyHtml = guest.history.map(h => '<div class="history-item"><span>[' + h.date + ']</span><span>担当: ' + h.cast + '</span></div>').join('');
+      let historyHtml = guest.history.map(h => '<div class="history-item"><span>[' + h.date + '] ' + (h.event === 'AHE' ? '<span style="color:#e67e22; font-size:0.8em; border:1px solid #e67e22; padding:1px 4px; border-radius:4px; margin-left:4px;">AHE</span>' : '') + '</span><span>担当: ' + h.cast + '</span></div>').join('');
       row.onmouseenter = function() { 
         if (window.innerWidth > 768) { 
           let previewId = 'all-guest-preview'; if (previewLocks[previewId]) return; updatePreview(guest, badgeHtml, '', guest.desc, previewId, historyHtml); 
