@@ -11,10 +11,10 @@
     ========================================= */
     body { background-color: #050608; color: #c5c6c7; font-family: 'Noto Sans JP', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
     
-    /* ★ ローディング＆ログイン用オーバーレイ（星澄さんのデザイン！） */
+    /* ★ ローディング＆ログイン用オーバーレイ */
     #loader-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: #0f172a; /* ポータルと同じ背景色 */
+      background-color: #0f172a; 
       z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;
       transition: opacity 0.8s ease;
     }
@@ -232,6 +232,8 @@
             <button id="tab-event" class="nav-btn active" onclick="switchMode('event')">EVENT</button>
             <button id="tab-casts" class="nav-btn" onclick="switchMode('casts')">CASTS</button>
             <button id="tab-guests" class="nav-btn" onclick="switchMode('guests')">CUSTOMERS</button>
+            <!-- ★ 管理ポータルへ移動するボタン -->
+            <button id="btn-to-admin" class="nav-btn" style="border: 1px solid #e74c3c; color: #e74c3c; display: none;" onclick="goToAdmin()">⚙️ ADMIN</button>
           </div>
 
           <div class="date-picker-wrap" id="date-picker-container" style="visibility: hidden;">
@@ -300,8 +302,14 @@
           TOTAL: 0 名 <span style="margin: 0 10px; color: #555;">|</span> <span style="color: #e74c3c;">M: 0</span> <span style="margin: 0 10px; color: #555;">|</span> <span style="color: #3498db;">C: 0</span>
         </div>
 
+        <!-- ★ 検索・属性フィルタ・並び替え -->
         <div class="guest-controls">
           <input type="text" id="guest-search" class="search-input" placeholder="名前や特徴で検索..." oninput="renderFilteredGuests()">
+          <select id="guest-attr-filter" class="search-input" onchange="renderFilteredGuests()">
+            <option value="ALL">属性: すべて</option>
+            <option value="M">M側のみ</option>
+            <option value="C">C側のみ</option>
+          </select>
           <select id="guest-sort" class="search-input" onchange="renderFilteredGuests()">
             <option value="count-desc">来店回数順 (多い順)</option>
             <option value="date-desc">最終来店日順 (新しい順)</option>
@@ -310,6 +318,14 @@
           <button id="btn-guest-view-toggle" class="nav-btn" style="border: 1px solid rgba(155, 89, 182, 0.5); display:flex; align-items:center;" onclick="toggleGuestView()">
             📄 リスト表示
           </button>
+        </div>
+
+        <!-- ★ イベントフィルタ（チェックボックス） -->
+        <div id="event-filter-container" class="guest-controls" style="margin-top:-5px; margin-bottom:15px; font-size:0.9em; align-items:center; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 20px;">
+          <span style="color:#ccc; font-weight:bold;">表示イベント:</span>
+          <div id="event-checkboxes" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+          <button class="nav-btn" style="padding:2px 8px; font-size:0.7em;" onclick="toggleAllEvents(true)">全選択</button>
+          <button class="nav-btn" style="padding:2px 8px; font-size:0.7em;" onclick="toggleAllEvents(false)">全解除</button>
         </div>
 
         <div class="section-layout">
@@ -330,7 +346,23 @@
       <div class="lightbox-info">
         <div id="lb-badges" style="margin-bottom:5px;"></div>
         <h2 id="lb-name" class="lightbox-name"></h2>
-        <div id="lb-roles" class="lightbox-roles"></div>
+        
+        <!-- ★ 編集ボタンとフォーム -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #333; margin-bottom: 10px; padding-bottom: 5px;">
+          <div id="lb-roles" class="lightbox-roles" style="border:none; margin:0; padding:0;"></div>
+          <button class="nav-btn" style="border:1px solid #d4af37;" onclick="toggleGuestEdit()">✏️ 編集</button>
+        </div>
+        
+        <div id="lb-edit-form" style="display:none; margin-bottom:15px; padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(212,175,55,0.3);">
+          <input type="text" id="edit-guest-name" class="search-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="新しい名前">
+          <input type="text" id="edit-guest-img" class="search-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="新しい画像URL">
+          <div style="display:flex; gap:10px;">
+            <button onclick="saveGuestEdit()" class="nav-btn" style="background:rgba(46, 204, 113, 0.8); border:none; color:#fff;">保存する</button>
+            <button onclick="toggleGuestEdit()" class="nav-btn">キャンセル</button>
+          </div>
+          <div id="edit-guest-status" style="font-size:0.8em; margin-top:5px;"></div>
+        </div>
+
         <div id="lb-desc" class="lightbox-desc"></div>
         <div id="lb-history" class="lightbox-history"></div> 
         <div id="lb-x-link-wrap"></div>
@@ -346,6 +378,10 @@
     const token = urlParams.get('token');
     const isAdmin = urlParams.get('admin');
     const botKey = urlParams.get('bot_key');
+
+    function goToAdmin() {
+      if (token) window.location.href = `admin.html?token=${token}`;
+    }
 
     // ★ GASと通信する関数
     async function fetchAPI(action, extraParams = "") {
@@ -380,20 +416,23 @@
       // ① まだログインしていない（トークンがない）場合
       if (!token && !botKey) {
           loaderText.innerText = "AUTHORIZING...";
-          // GASに「DiscordログインのURL」を聞きにいく
           let data = await fetchAPI("getAuthUrl", isAdmin ? "admin=true" : "");
           if (data && data.authUrl) {
-              // 取得できたら、文字をボタンに書き換える！
               loaderText.innerHTML = `<a href="${data.authUrl}" class="discord-login-btn">LOGIN WITH DISCORD</a>`;
           } else {
               loaderText.innerText = "API ERROR";
           }
-          return; // ログイン前なので、ここで一旦待機
+          return; 
       }
 
       // ② ログイン済み（トークンがある）場合
       loaderText.innerText = "LOADING DATA...";
       createParticles();
+
+      // もし管理者としてメインポータルを見ているなら、ADMIN移動ボタンを表示
+      if (token && isAdmin === 'true') {
+          document.getElementById('btn-to-admin').style.display = 'block';
+      }
 
       // GASのAPIから、名簿と予定を一気に取ってくる！
       const [dates, casts, rawHistory] = await Promise.all([
@@ -437,18 +476,25 @@
     function processGuestHistory(rawData) {
       if (!rawData || rawData.length === 0) return;
       let guestMap = {};
+      let uniqueEvents = new Set(); // ★ イベントの一覧を記憶するセット
+
       rawData.forEach(function(row) {
         let name = row.guestName;
         if (!name) return;
         let tsObj = new Date(row.date);
         let ts = isNaN(tsObj.getTime()) ? 0 : tsObj.getTime();
+        
+        let eventLabel = row.event ? row.event : "Celestial";
+        uniqueEvents.add(eventLabel);
+
         if (!guestMap[name]) {
           guestMap[name] = { name: name, visitCount: 0, desc: row.desc || '', xLink: row.xLink || '', imageUrl: row.img || '', attribute: row.attribute || '', history: [], lastVisitTime: -1 };
         }
         guestMap[name].visitCount++;
         let dateStr = !isNaN(tsObj) ? tsObj.toLocaleDateString('ja-JP', {year:'numeric', month:'2-digit', day:'2-digit'}) : row.date;
-        let eventLabel = row.event ? row.event : "Celestial";
+        
         guestMap[name].history.push({ date: dateStr, cast: row.castName, event: eventLabel, ts: ts });
+        
         if (ts >= guestMap[name].lastVisitTime) {
           guestMap[name].lastVisitTime = ts;
           if (row.img) guestMap[name].imageUrl = row.img;
@@ -467,6 +513,18 @@
       let statsEl = document.getElementById('customer-stats');
       if (statsEl) {
         statsEl.innerHTML = 'TOTAL: ' + cachedAllGuests.length + ' 名 <span style="margin: 0 10px; color: #555;">|</span> <span style="color: #e74c3c;">M: ' + mCount + '</span> <span style="margin: 0 10px; color: #555;">|</span> <span style="color: #3498db;">C: ' + cCount + '</span>';
+      }
+
+      // ★ 動的にイベントチェックボックスを生成
+      const cbContainer = document.getElementById('event-checkboxes');
+      if (cbContainer) {
+        cbContainer.innerHTML = '';
+        Array.from(uniqueEvents).forEach(ev => {
+          let lbl = document.createElement('label');
+          lbl.style.cursor = "pointer";
+          lbl.innerHTML = `<input type="checkbox" class="event-filter-cb" value="${ev}" checked onchange="renderFilteredGuests()"> ${ev}`;
+          cbContainer.appendChild(lbl);
+        });
       }
     }
 
@@ -549,7 +607,23 @@
       if (!cachedAllGuests) return;
       const query = document.getElementById('guest-search').value.toLowerCase();
       const sortMode = document.getElementById('guest-sort').value;
-      let filtered = cachedAllGuests.filter(function(g) { return g.name.toLowerCase().includes(query) || (g.desc && g.desc.toLowerCase().includes(query)); });
+      const attrFilter = document.getElementById('guest-attr-filter').value;
+      
+      // ★ チェックされているイベントの一覧を取得
+      const checkedEvents = Array.from(document.querySelectorAll('.event-filter-cb:checked')).map(cb => cb.value);
+
+      let filtered = cachedAllGuests.filter(function(g) { 
+        const matchText = g.name.toLowerCase().includes(query) || (g.desc && g.desc.toLowerCase().includes(query));
+        
+        let matchAttr = true;
+        if (attrFilter !== 'ALL') matchAttr = String(g.attribute).toUpperCase().includes(attrFilter);
+        
+        // 履歴の中にチェックしたイベントが1つでも含まれていれば表示
+        let matchEvent = g.history.some(h => checkedEvents.includes(h.event));
+
+        return matchText && matchAttr && matchEvent; 
+      });
+
       filtered.sort(function(a, b) {
         if (sortMode === 'count-desc') {
           if (b.visitCount !== a.visitCount) return b.visitCount - a.visitCount;
@@ -650,21 +724,6 @@
       container.onclick = function(e) { if (e.target.closest('a')) return; openLightbox(person, badgesHtml, rolesHtml, descText, historyHtml); };
     }
 
-    function openLightbox(person, badges, roles, desc, history = '') {
-      document.getElementById('lb-img').src = person.imageUrl || '';
-      document.getElementById('lb-name').innerText = person.name;
-      document.getElementById('lb-badges').innerHTML = badges;
-      document.getElementById('lb-roles').innerHTML = roles;
-      document.getElementById('lb-desc').innerHTML = desc; 
-      const historyWrap = document.getElementById('lb-history');
-      if (history) historyWrap.innerHTML = '<div style="font-weight:bold; color:#d4af37; margin-top:10px; font-size:0.9em;">📝 来店履歴</div><div class="history-list">' + history + '</div>';
-      else historyWrap.innerHTML = '';
-      const xWrap = document.getElementById('lb-x-link-wrap');
-      xWrap.innerHTML = person.xLink ? '<a href="' + person.xLink + '" target="_blank" class="x-link-btn" style="position:static; margin-top:10px;">X (Twitter)</a>' : '';
-      const lb = document.getElementById('lightbox'); lb.classList.add('active'); setTimeout(function() { lb.classList.add('show'); }, 10);
-    }
-    function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); setTimeout(function() { document.getElementById('lightbox').classList.remove('active'); }, 300); }
-
     function createCard(person, isCast, index, showRole, targetGroup) {
       const card = document.createElement('div'); card.className = 'card'; card.style.animationDelay = (index * 0.05) + "s";
       let tl = '', tr = '';
@@ -762,6 +821,73 @@
         }
       };
       return row;
+    }
+
+    // === イベントフィルタ全選択/全解除 ===
+    function toggleAllEvents(checkStatus) {
+      document.querySelectorAll('.event-filter-cb').forEach(cb => cb.checked = checkStatus);
+      renderFilteredGuests();
+    }
+
+    // === お客様編集機能 ===
+    let currentEditGuestName = "";
+
+    function openLightbox(person, badges, roles, desc, history = '') {
+      document.getElementById('lb-img').src = person.imageUrl || '';
+      document.getElementById('lb-name').innerText = person.name;
+      document.getElementById('lb-badges').innerHTML = badges;
+      document.getElementById('lb-roles').innerHTML = roles;
+      document.getElementById('lb-desc').innerHTML = desc; 
+      const historyWrap = document.getElementById('lb-history');
+      if (history) historyWrap.innerHTML = '<div style="font-weight:bold; color:#d4af37; margin-top:10px; font-size:0.9em;">📝 来店履歴</div><div class="history-list">' + history + '</div>';
+      else historyWrap.innerHTML = '';
+      const xWrap = document.getElementById('lb-x-link-wrap');
+      xWrap.innerHTML = person.xLink ? '<a href="' + person.xLink + '" target="_blank" class="x-link-btn" style="position:static; margin-top:10px;">X (Twitter)</a>' : '';
+      
+      // 編集フォームの準備
+      currentEditGuestName = person.name;
+      document.getElementById('edit-guest-name').value = person.name;
+      document.getElementById('edit-guest-img').value = person.imageUrl || '';
+      document.getElementById('lb-edit-form').style.display = 'none';
+      document.getElementById('edit-guest-status').innerText = "";
+
+      const lb = document.getElementById('lightbox'); lb.classList.add('active'); setTimeout(function() { lb.classList.add('show'); }, 10);
+    }
+
+    function toggleGuestEdit() {
+      const form = document.getElementById('lb-edit-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      document.getElementById('edit-guest-status').innerText = "";
+    }
+
+    function closeLightbox() { 
+      document.getElementById('lightbox').classList.remove('show'); 
+      setTimeout(function() { document.getElementById('lightbox').classList.remove('active'); }, 300); 
+    }
+
+    async function saveGuestEdit() {
+      const newName = document.getElementById('edit-guest-name').value.trim();
+      const newImg = document.getElementById('edit-guest-img').value.trim();
+      if (!newName) return;
+
+      document.getElementById('edit-guest-status').innerText = "⏳ データベースを書き換えています...";
+      document.getElementById('edit-guest-status').style.color = "#d4af37";
+
+      // GETリクエストで更新APIを叩く
+      let params = "old_name=" + encodeURIComponent(currentEditGuestName) +
+                   "&new_name=" + encodeURIComponent(newName) +
+                   "&new_image=" + encodeURIComponent(newImg);
+
+      let res = await fetchAPI("updateGuestGlobal", params);
+
+      if (res && res.status === "Success") {
+        document.getElementById('edit-guest-status').innerText = "✅ 保存完了！ページを再読み込みします...";
+        document.getElementById('edit-guest-status').style.color = "#2ecc71";
+        setTimeout(() => location.reload(), 1500); // 変更を反映させるためリロード
+      } else {
+        document.getElementById('edit-guest-status').innerText = "❌ 保存に失敗しました。";
+        document.getElementById('edit-guest-status').style.color = "#e74c3c";
+      }
     }
   </script>
 </body>
